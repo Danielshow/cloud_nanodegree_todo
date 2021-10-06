@@ -1,4 +1,4 @@
-import { CustomAuthorizerEvent, CustomAuthorizerResult } from 'aws-lambda'
+import { APIGatewayAuthorizerResult, APIGatewayTokenAuthorizerEvent } from 'aws-lambda'
 import 'source-map-support/register'
 
 import { verify, decode } from 'jsonwebtoken'
@@ -15,8 +15,8 @@ const logger = createLogger('auth')
 const jwksUrl = 'https://dev-k5n4bfji.us.auth0.com/.well-known/jwks.json'
 
 export const handler = async (
-  event: CustomAuthorizerEvent
-): Promise<CustomAuthorizerResult> => {
+  event: APIGatewayTokenAuthorizerEvent
+): Promise<APIGatewayAuthorizerResult> => {
   logger.info('Authorizing a user', event.authorizationToken)
   try {
     const jwtToken = await verifyToken(event.authorizationToken)
@@ -58,6 +58,10 @@ async function verifyToken(authHeader: string): Promise<JwtPayload> {
   const token = getToken(authHeader)
   const jwt: Jwt = decode(token, { complete: true }) as Jwt
 
+  if (jwt.header.alg !== 'RS256') {
+    throw new Error('invalid Token')
+  }
+
   const { data } = await Axios.get(jwksUrl);
   const keys = data.keys;
 
@@ -67,10 +71,13 @@ async function verifyToken(authHeader: string): Promise<JwtPayload> {
     });
 
   if (!signingKeys.length) throw new Error("No signing key found")
-  const foundKey = signingKeys.find(key => key.publicKey);
+  const foundKey = signingKeys.find(key => jwt.header.kid === key.kid);
+  const key = `-----BEGIN CERTIFICATE-----
+  ${foundKey.publicKey}
+-----END CERTIFICATE-----`
   return verify(
     token,
-    foundKey.publicKey,
+    key,
     { algorithms: ['RS256'] }
   ) as JwtPayload
 }
@@ -85,9 +92,4 @@ function getToken(authHeader: string): string {
   const token = split[1]
 
   return token
-}
-
-
-function certToPEM(key) {
-
 }
