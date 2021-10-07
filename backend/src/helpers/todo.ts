@@ -22,7 +22,8 @@ export async function createTodo(
   const todoId = uuid.v4()
   const attachmentUrl = `https://${bucketName}.s3.amazonaws.com/${todoId}`
   const data = {
-    ...createTodoRequest,
+    name: createTodoRequest.name.trim(),
+    dueDate: createTodoRequest.dueDate,
     todoId,
     attachmentUrl,
     done: false,
