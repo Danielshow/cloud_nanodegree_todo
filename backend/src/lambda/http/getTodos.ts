@@ -19,7 +19,9 @@ export const handler = middy(async (
   const result = await getAllTodos(userId)
   return {
     statusCode: 200,
-    body: JSON.stringify(result)
+    body: JSON.stringify({
+      items: result,
+    })
   }
 })
 

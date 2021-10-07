@@ -5,6 +5,8 @@ plugins:
   - serverless-webpack
   - serverless-iam-roles-per-function
 
+package:
+  individually: true
 provider:
   name: aws
   runtime: nodejs12.x
@@ -13,7 +15,6 @@ provider:
   tracing:
     lambda: true
     apiGateway: true
-  package:
 
   environment:
     TODOS_TABLE: Groups-${self:provider.stage}
