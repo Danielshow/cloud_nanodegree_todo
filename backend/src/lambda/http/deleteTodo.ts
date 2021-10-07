@@ -1,32 +1,20 @@
 import 'source-map-support/register'
-import * as AWS from 'aws-sdk'
 import * as middy from 'middy'
 import { cors } from 'middy/middlewares'
 import { getUserId } from '../utils'
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda'
+import { deleteTodo } from '../../helpers/todo'
+import { createLogger } from '../../utils/logger'
 
-const todosTable = process.env.TODOS_TABLE
-const docClient = new AWS.DynamoDB.DocumentClient()
+const logger = createLogger('deleteTodo')
 
 export const handler = middy(
   async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
     try {
       const todoId = event.pathParameters.todoId
       const userId = getUserId(event)
-      // TODO: Remove a TODO item by id
-      await docClient
-        .delete({
-          TableName: todosTable,
-          Key: {
-            todoId,
-            userId
-          }
-        })
-        .promise()
-      return {
-        statusCode: 200,
-        body: ''
-      }
+      logger.info(`Deleting todo ${todoId} for user ${userId}`)
+      await deleteTodo(todoId, userId)
     } catch (e) {
       return {
         statusCode: 500,
