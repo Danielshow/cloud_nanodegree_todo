@@ -55,7 +55,7 @@ export class Todos extends React.PureComponent<TodosProps, TodosState> {
         todos: [...this.state.todos, newTodo],
         newTodoName: ''
       })
-    } catch {
+    } catch(e) {
       alert('Todo creation failed')
     }
   }
@@ -93,13 +93,13 @@ export class Todos extends React.PureComponent<TodosProps, TodosState> {
     try {
       const todos = await getTodos(this.props.auth.getIdToken())
       this.setState({
-        todos,
+        todos: todos || [],
         loadingTodos: false
       })
     } catch (e) {
       alert(`Failed to fetch todos: ${e.message}`)
     }
-  }
+  }  
 
   render() {
     return (
@@ -159,7 +159,7 @@ export class Todos extends React.PureComponent<TodosProps, TodosState> {
   renderTodosList() {
     return (
       <Grid padded>
-        {this.state.todos.map((todo, pos) => {
+        {(this.state.todos || []).map((todo, pos) => {
           return (
             <Grid.Row key={todo.todoId}>
               <Grid.Column width={1} verticalAlign="middle">
