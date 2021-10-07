@@ -45,5 +45,7 @@ export const handler = middy(async (
 })
 
 handler.use(
-  cors()
+  cors({
+    credentials: true
+  })
 )
